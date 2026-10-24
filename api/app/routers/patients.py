@@ -2,14 +2,16 @@
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, timedelta
+from typing import Annotated
 
-from fastapi import APIRouter, Response
+from fastapi import APIRouter, Query, Response
 
 from app import schemas
 from app.config import settings
 from app.routers import presenters
 from app.routers.deps import NowDep, SessionDep, doctors_by_id
+from app.scheduler.engine import bookable_minutes
 from app.services import booking as booking_service
 from app.services import placement, waitlist
 from app.services.calendar import booking_ics
@@ -116,6 +118,28 @@ def get_waitlist(code: str, session: SessionDep) -> schemas.WaitlistOut:
 @router.post("/waitlist/{code}/leave", response_model=schemas.WaitlistOut)
 def leave_waitlist(code: str, session: SessionDep) -> schemas.WaitlistOut:
     return presenters.waitlist(waitlist.leave(session, code))
+
+
+@router.get("/calendar", response_model=list[schemas.CalendarDay])
+def calendar(
+    session: SessionDep,
+    now: NowDep,
+    days: Annotated[int, Query(ge=1, le=settings.booking_horizon_days)] = 14,
+) -> list[schemas.CalendarDay]:
+    """Open and still-bookable minutes per day, so the day picker can skip closed or full days."""
+    dates = [now.date() + timedelta(days=i) for i in range(days)]
+    doctor_days = placement.build_doctor_days(session, dates, now)
+    params = placement.engine_params()
+    return [
+        schemas.CalendarDay(
+            day=day,
+            open_minutes=sum(dd.open_minutes for dd in doctor_days if dd.day == day),
+            bookable_minutes=sum(
+                bookable_minutes(dd, now, params) for dd in doctor_days if dd.day == day
+            ),
+        )
+        for day in dates
+    ]
 
 
 @router.get("/demand", response_model=schemas.DemandOut)

@@ -84,6 +84,7 @@ All scheduling policy numbers (scoring weights, the 80% target, strike threshold
 
 ### Patients
 - **Availability as a window, not a slot.** Drag across a day timeline to mark one or more windows, or use presets (Morning, Afternoon, Evening, Any time). Busy hours are shaded, so patients can see which times are contested.
+- **Day picker that knows the calendar.** Closed days are disabled, days with no bookable time left are marked *Full*, and the form opens on the first day that still has room (so a late-evening or weekend visit doesn't land on an empty day). Bookings open 28 days ahead.
 - **Preferred time** inside the window, a visit type (follow-up 30 min, new consultation 45 min) and an optional "I'm flexible on the day" (also searches the next two days).
 - **Three confirmed options instantly**, each labelled with why it was suggested: *Recommended*, *Closest to your time*, *Soonest*. Cards show whether the hour is busy and whether a deposit applies.
 - **5-minute hold** while the patient confirms, so two people can't take the same slot.
@@ -339,6 +340,7 @@ Full interactive docs: `http://localhost:8000/docs`. Errors share one shape: `{"
 | `POST` | `/bookings/{code}/reschedule` | Move to a chosen option |
 | `GET` | `/bookings/{code}/calendar.ics` | Calendar file |
 | `POST` | `/waitlist` · `GET /waitlist/{code}` · `POST /waitlist/{code}/leave` | Waitlist |
+| `GET` | `/calendar?days=` | Open and still-bookable minutes per upcoming day (drives the day picker) |
 | `GET` | `/demand?day=` | Demand profile for shading busy hours |
 | `GET` | `/doctors` | Doctors with today's utilization |
 | `GET` | `/doctors/{id}/schedule?day=` | Day schedule and stats |
@@ -354,7 +356,7 @@ Full interactive docs: `http://localhost:8000/docs`. Errors share one shape: `{"
 ## Testing and quality
 
 ```bash
-make test        # 44 API tests
+make test        # 49 API tests
 make lint        # ruff + ESLint + Prettier
 make typecheck   # mypy --strict + tsc
 make check       # all of the above
@@ -363,6 +365,7 @@ make check       # all of the above
 - **Engine tests** (pure): stays inside windows and on the grid, never overlaps, avoids dead gaps, steers wide windows off peak while narrow windows keep peak, balances load, respects current time and notice, falls back outside the window, returns distinct labelled options.
 - **Flow tests** (HTTP, against a temp SQLite file with a pinned clock): request → hold → confirm; double-booking conflicts; **six concurrent holds → exactly one wins**; hold expiry; deposit tiers and settlement; no-show guard; late-cancel strikes; waitlist auto-fill on cancellation; multi-day search.
 - **Availability tests**: leave → same-time reassignment; block → new time inside the window; no capacity → `needs_reschedule` → patient reschedules; removing leave; hours changes.
+- **Calendar and validation tests**: closed weekends, time already passed today, gaps too short to book, the booking horizon, and schema errors returned in the same `{error: {code, message}}` shape as domain errors.
 - **Analytics tests**: utilization, realized utilization, no-show and overrun rates computed from known outcomes.
 - The API passes `mypy --strict`. The web app passes `tsc` (strict), ESLint (including React Compiler rules) and Prettier.
 

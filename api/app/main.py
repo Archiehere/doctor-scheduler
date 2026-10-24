@@ -4,6 +4,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -38,6 +39,21 @@ async def domain_error_handler(_request: Request, exc: DomainError) -> JSONRespo
     return JSONResponse(
         status_code=exc.status_code,
         content={"error": {"code": exc.code, "message": exc.message}},
+    )
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_error_handler(_request: Request, exc: RequestValidationError) -> JSONResponse:
+    """Return schema errors in the same shape as domain errors, with a readable message."""
+    first = exc.errors()[0] if exc.errors() else {}
+    field = str(first.get("loc", ("", "request"))[-1]).replace("_", " ")
+    if first.get("type") == "string_pattern_mismatch":
+        message = f"Enter a valid {field}"
+    else:
+        message = f"{field.capitalize()}: {first.get('msg', 'invalid value')}"
+    return JSONResponse(
+        status_code=422,
+        content={"error": {"code": "validation", "message": message}},
     )
 
 

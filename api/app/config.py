@@ -54,6 +54,7 @@ class Settings:
     min_bookable_gap: int = 30  # a free gap shorter than this is dead time
     min_notice_minutes: int = 15  # earliest start relative to "now"
     max_search_ahead_days: int = 6
+    booking_horizon_days: int = 28  # how far ahead patients can book
     outside_range_margin: int = 120  # how far beyond a range fallback options may go
     options_returned: int = 3
 

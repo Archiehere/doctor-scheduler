@@ -2,6 +2,7 @@ import type {
   AnalyticsOverview,
   Booking,
   BookingRequestBody,
+  CalendarDay,
   DemandProfile,
   DoctorAnalytics,
   DoctorListItem,
@@ -93,6 +94,7 @@ export const api = {
   waitlist: (code: string) => request<WaitlistEntry>(`/waitlist/${encodeURIComponent(code)}`),
   leaveWaitlist: (code: string) =>
     request<WaitlistEntry>(`/waitlist/${code}/leave`, { method: "POST" }),
+  calendar: (days = 14) => request<CalendarDay[]>(`/calendar?days=${days}`),
   demand: (day: string) => request<DemandProfile>(`/demand?day=${day}`),
 
   // Doctors

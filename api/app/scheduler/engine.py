@@ -154,6 +154,19 @@ def _earliest_start(day: date, now: datetime, params: EngineParams) -> int | Non
     return start if start < MINUTES_PER_DAY else None
 
 
+def bookable_minutes(doctor_day: DoctorDay, now: datetime, params: EngineParams) -> int:
+    """Free minutes a new call could still use: after the notice window, in gaps that fit a call."""
+    earliest = _earliest_start(doctor_day.day, now, params)
+    if earliest is None:
+        return 0
+    total = 0
+    for gap in doctor_day.free():
+        start = align_up(max(gap.start, earliest), params.grid)
+        if gap.end - start >= params.min_bookable_gap:
+            total += gap.end - start
+    return total
+
+
 def _search_windows(request: SlotRequest, allow_outside: bool, margin: int) -> list[Interval]:
     if not allow_outside:
         return list(request.ranges)

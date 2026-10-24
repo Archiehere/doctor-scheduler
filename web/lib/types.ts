@@ -103,6 +103,12 @@ export interface WaitlistEntry {
   booking_code: string | null;
 }
 
+export interface CalendarDay {
+  day: string;
+  open_minutes: number;
+  bookable_minutes: number;
+}
+
 export interface DemandProfile {
   day: string;
   peak_threshold: number;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { DayPicker } from "@/components/booking/day-picker";
 import { OptionCard } from "@/components/booking/option-card";
 import { RangePicker } from "@/components/booking/range-picker";
@@ -21,6 +21,7 @@ import {
 } from "@/lib/format";
 import type {
   Booking,
+  CalendarDay,
   DemandProfile,
   OptionsResponse,
   SlotOption,
@@ -55,6 +56,8 @@ export function BookingFlow() {
     phone: "",
   });
   const [demand, setDemand] = useState<DemandProfile | null>(null);
+  const [availability, setAvailability] = useState<Map<string, CalendarDay>>();
+  const dayTouched = useRef(false);
   const [result, setResult] = useState<OptionsResponse | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -63,7 +66,26 @@ export function BookingFlow() {
   const [joiningWaitlist, setJoiningWaitlist] = useState(false);
 
   const duration = VISIT_MINUTES[form.visitType];
+  // The clinic's calendar starts on the clinic's today, which can differ from the browser's.
+  const clinicToday = availability?.keys().next().value ?? today;
   const update = (patch: Partial<FormState>) => setForm((f) => ({ ...f, ...patch }));
+
+  // Start on the first day that still has room, unless the patient already picked one.
+  useEffect(() => {
+    let cancelled = false;
+    api
+      .calendar()
+      .then((days) => {
+        if (cancelled) return;
+        setAvailability(new Map(days.map((d) => [d.day, d])));
+        const first = days.find((d) => d.bookable_minutes >= VISIT_MINUTES.follow_up);
+        if (first && !dayTouched.current) setForm((f) => ({ ...f, day: first.day }));
+      })
+      .catch(() => undefined); // the picker still works without availability hints
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -227,7 +249,16 @@ export function BookingFlow() {
         </Section>
 
         <Section number={2} title="Day">
-          <DayPicker value={form.day} onChange={(day) => update({ day })} from={today} />
+          <DayPicker
+            value={form.day}
+            onChange={(day) => {
+              dayTouched.current = true;
+              update({ day });
+            }}
+            from={clinicToday}
+            availability={availability}
+            minMinutes={duration}
+          />
           <div className="mt-4">
             <Checkbox
               checked={form.flexibleDay}

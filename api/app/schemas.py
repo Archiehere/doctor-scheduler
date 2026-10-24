@@ -164,6 +164,12 @@ class DemandOut(ApiModel):
     points: list[DemandPoint]
 
 
+class CalendarDay(ApiModel):
+    day: date
+    open_minutes: int
+    bookable_minutes: int
+
+
 # --- doctors ----------------------------------------------------------------------
 
 

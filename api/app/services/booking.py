@@ -45,6 +45,8 @@ def create_request(
 ) -> tuple[BookingRequest, placement.Placement]:
     if day < now.date():
         raise InvalidRequest("The requested day is in the past")
+    if (day - now.date()).days >= settings.booking_horizon_days:
+        raise InvalidRequest(f"You can book up to {settings.booking_horizon_days} days ahead")
     merged = merge(ranges)
     duration = VISIT_DURATIONS[visit_type]
     if not merged or all(r.length < duration for r in merged):
