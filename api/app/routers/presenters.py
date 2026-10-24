@@ -50,7 +50,10 @@ def options(
         in_range=placement.in_range,
         options=[option(o, placement, doctors) for o in placement.options],
         policy=schemas.PolicyOut(
-            strikes=placement.strikes, tier=placement.tier, deposit_cents=settings.deposit_cents
+            strikes=placement.strikes,
+            tier=placement.tier,
+            deposit_amount=settings.deposit_amount,
+            currency=settings.currency,
         ),
     )
 
@@ -70,7 +73,8 @@ def booking(b: Booking, now: datetime) -> schemas.BookingOut:
         match=b.match,
         source=b.source,
         deposit_status=b.deposit_status,
-        deposit_cents=b.deposit_cents,
+        deposit_amount=b.deposit_amount,
+        currency=settings.currency,
         hold_expires_at=b.hold_expires_at,
         notice=b.notice,
         late_cancel=b.late_cancel,

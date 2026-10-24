@@ -74,7 +74,8 @@ class Settings:
     strike_window_days: int = 90
     strike_no_show: float = 1.0
     strike_late_cancel: float = 0.5
-    deposit_cents: int = 1500
+    deposit_amount: int = 50_000  # minor units (paise)
+    currency: str = "INR"
     preferred_tolerance_minutes: int = 30  # within this of the preferred time = "preferred"
 
     weights: ScoringWeights = field(default_factory=ScoringWeights)

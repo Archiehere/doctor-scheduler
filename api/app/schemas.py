@@ -86,7 +86,8 @@ class OptionOut(ApiModel):
 class PolicyOut(ApiModel):
     strikes: float
     tier: DepositTier
-    deposit_cents: int
+    deposit_amount: int
+    currency: str
 
 
 class OptionsOut(ApiModel):
@@ -126,7 +127,8 @@ class BookingOut(ApiModel):
     match: PreferenceMatch
     source: BookingSource
     deposit_status: DepositStatus
-    deposit_cents: int
+    deposit_amount: int
+    currency: str
     hold_expires_at: datetime | None
     notice: str | None
     late_cancel: bool
@@ -291,6 +293,8 @@ class BlockPoint(ApiModel):
 
 
 class DoctorAnalytics(ApiModel):
+    start: date
+    end: date
     kpis: DoctorKpis
     daily: list[DailyPoint]
     blocks: list[BlockPoint]

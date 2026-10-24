@@ -249,7 +249,7 @@ def create_booking(
         source=source,
         match=preference_match(candidate, request.preferred_minute),
         deposit_status=deposit,
-        deposit_cents=settings.deposit_cents if deposit != DepositStatus.NONE else 0,
+        deposit_amount=settings.deposit_amount if deposit != DepositStatus.NONE else 0,
         created_at=now,
         hold_expires_at=now + timedelta(minutes=settings.hold_minutes)
         if status == BookingStatus.HELD

@@ -188,7 +188,7 @@ class Booking(Base):
     source: Mapped[BookingSource] = mapped_column(_enum(BookingSource))
     match: Mapped[PreferenceMatch] = mapped_column(_enum(PreferenceMatch))
     deposit_status: Mapped[DepositStatus] = mapped_column(_enum(DepositStatus))
-    deposit_cents: Mapped[int] = mapped_column(Integer, default=0)
+    deposit_amount: Mapped[int] = mapped_column(Integer, default=0)
     late_cancel: Mapped[bool] = mapped_column(default=False)
     notice: Mapped[str | None] = mapped_column(String(300))
 

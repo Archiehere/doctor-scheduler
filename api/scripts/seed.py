@@ -289,7 +289,7 @@ def _schedule_request(
             start_minute=chosen.slot.start,
             now=at,
         )
-        if held.deposit_cents and rng.random() < 0.12:
+        if held.deposit_amount and rng.random() < 0.12:
             replay.stats["abandoned"] += 1
             return  # deposit put them off; the hold simply expires
         booking = booking_service.confirm(session, held.code, deposit_paid=True, now=at)
@@ -310,7 +310,7 @@ def _schedule_lifecycle(
             return  # cancelled, moved to reschedule, etc.
         lead_days = (booking.starts_at - booking.request.created_at).days
         show_prob = patient.reliability - 0.015 * min(lead_days, 7)
-        if booking.deposit_cents:
+        if booking.deposit_amount:
             show_prob += (1 - show_prob) * 0.5  # deposits halve the no-show risk
         if rng.random() > show_prob:
             booking_service.record_outcome(
